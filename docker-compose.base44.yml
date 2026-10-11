@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: crew
+      POSTGRES_USER: crew
+      POSTGRES_PASSWORD: crewpass
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crew -d crew"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+
+  web:
+    image: node:22-slim
+    working_dir: /app
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: crew
+      DB_USER: crew
+      DB_PASSWORD: crewpass
+      PORT: "3000"
+      BASE44_PREVIEW_MODE: ${BASE44_PREVIEW_MODE:-}
+    volumes:
+      - ./app:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-ec", "npm install --omit=dev && exec node server.js"]
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/api/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: on-failure
+
+volumes:
+  db-data:

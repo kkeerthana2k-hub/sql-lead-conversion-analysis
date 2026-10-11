@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Crew — Lead Conversion Database</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --border: #334155;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --accent: #22d3ee;
+      --accent-dim: #0891b2;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #facc15;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 2rem 1.5rem;
+    }
+    header h1 {
+      font-size: 1.75rem;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--text-dim);
+      margin-top: 0.4rem;
+      font-size: 0.95rem;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab:hover { background: var(--surface); color: var(--text); }
+    .tab.active {
+      background: var(--accent-dim);
+      color: var(--bg);
+      font-weight: 600;
+    }
+    .tab-section { padding: 0 2rem 0.5rem; }
+    .tab-section h2 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+    .tab-section .desc { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem; }
+    .content { padding: 0 2rem 2rem; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 0.875rem;
+    }
+    .data-table th {
+      background: var(--surface-hover);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(34, 211, 238, 0.05); }
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-active { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+    .badge-inactive { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+    .badge-progress { background: rgba(250, 204, 21, 0.15); color: var(--yellow); }
+    .badge-discontinuing { background: rgba(250, 204, 21, 0.15); color: var(--yellow); }
+    .badge-attended { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+    .badge-noshow { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-dim);
+    }
+    .loading .spinner {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--red);
+    }
+    .stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      min-width: 140px;
+    }
+    .stat-card .num { font-size: 1.75rem; font-weight: 700; color: var(--accent); }
+    .stat-card .label { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+    .query-sql {
+      background: #0c1322;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>The Crew — Lead Conversion Analysis</h1>
+    <p>Fitness &amp; wellness business lead-to-membership lifecycle database · 6 normalized tables · 7 analytical queries</p>
+  </header>
+  <div class="tabs">
+    <div class="tab active" data-type="table" data-name="campaign">Campaigns</div>
+    <div class="tab" data-type="table" data-name="sales">Sales Reps</div>
+    <div class="tab" data-type="table" data-name="lead">Leads</div>
+    <div class="tab" data-type="table" data-name="trial_appointment">Trial Appointments</div>
+    <div class="tab" data-type="table" data-name="client">Clients</div>
+    <div class="tab" data-type="table" data-name="membership">Memberships</div>
+    <div class="tab" data-type="query" data-name="q1">Q1: Female Analysts</div>
+    <div class="tab" data-type="query" data-name="q2">Q2: Wasted Campaigns</div>
+    <div class="tab" data-type="query" data-name="q3">Q3: Trial→Client</div>
+    <div class="tab" data-type="query" data-name="q4">Q4: Born Before 1990</div>
+    <div class="tab" data-type="query" data-name="q5">Q5: Costly Low-Lead</div>
+    <div class="tab" data-type="query" data-name="q6">Q6: Platform Trends</div>
+    <div class="tab" data-type="query" data-name="q7">Q7: Rep Workload</div>
+  </div>
+  <div class="tab-section">
+    <h2 id="view-title">Campaigns</h2>
+    <p class="desc" id="view-desc">Marketing campaigns with cost, ad, and platform</p>
+  </div>
+  <div class="content" id="content">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <script>
+    const STATUS_BADGES = {
+      'Active': 'badge-active', 'Inactive': 'badge-inactive',
+      'In progress': 'badge-progress', 'Discontinuing': 'badge-discontinuing',
+      'Attended': 'badge-attended', 'No Show': 'badge-noshow', 'No show': 'badge-noshow',
+    };
+
+    const tabs = document.querySelectorAll('.tab');
+    const content = document.getElementById('content');
+    const viewTitle = document.getElementById('view-title');
+    const viewDesc = document.getElementById('view-desc');
+
+    const TABLE_INFO = {
+      campaign: { title: 'Campaigns', desc: 'Marketing campaigns with cost, ad, and platform' },
+      sales: { title: 'Sales Reps', desc: 'Sales representatives handling leads' },
+      lead: { title: 'Leads', desc: 'Leads generated from campaigns, assigned to sales reps' },
+      trial_appointment: { title: 'Trial Appointments', desc: 'Trial gym appointments booked by leads' },
+      client: { title: 'Clients', desc: 'Leads who converted to clients' },
+      membership: { title: 'Memberships', desc: 'Membership plans for clients' },
+    };
+
+    const QUERY_INFO = {
+      q1: { title: 'Female Analysts & IT Managers with Memberships', desc: 'Find female leads who are analysts or IT managers and their membership details' },
+      q2: { title: 'Campaigns With No Leads (Wasted Marketing)', desc: 'Find campaigns that generated zero leads' },
+      q3: { title: 'Leads Who Attended Trial AND Became Clients', desc: 'Lead IDs that appear in both trial appointments and clients (INTERSECT)' },
+      q4: { title: 'Clients Born Before 1990', desc: 'Clients born before January 1, 1990 (EXCEPT set operator)' },
+      q5: { title: 'Expensive Campaigns With Few Leads', desc: 'Campaigns costing more than 1200 with fewer than 2 leads' },
+      q6: { title: 'Platform Lead Generation Trends', desc: 'Number of leads generated per platform (platforms with more than 3 leads)' },
+      q7: { title: 'In-Progress Leads for Reps with 5+ Assignments', desc: 'Leads with in-progress follow-up assigned to reps handling more than 5 leads (subquery)' },
+    };
+
+    const QUERY_SQL = {
+      q1: `SELECT lead.name, client.profession, membership.member_id, client.blood_grp, UPPER(client.gender) AS gender
+FROM lead
+INNER JOIN client ON lead.lead_id = client.lead_id
+INNER JOIN membership ON client.client_id = membership.client_id
+WHERE gender = 'female' AND profession = 'Analyst'
+   OR gender = 'female' AND lower(profession) LIKE '%it manager%'`,
+      q2: `SELECT c.campaign_id, c.platform, c.cost, l.lead_id
+FROM lead l
+RIGHT OUTER JOIN campaign c ON l.campaign_id = c.campaign_id
+WHERE l.lead_id IS NULL`,
+      q3: `SELECT lead_id FROM trial_appointment
+INTERSECT
+SELECT lead_id FROM client`,
+      q4: `SELECT * FROM client
+EXCEPT
+SELECT * FROM client WHERE dob >= '1990-01-01'::DATE`,
+      q5: `SELECT count(lead_id) AS total_leads, lead.campaign_id, cost, platform
+FROM lead
+INNER JOIN campaign ON lead.campaign_id = campaign.campaign_id
+WHERE cost > 1200
+GROUP BY lead.campaign_id, cost, platform
+HAVING count(lead_id) < 2
+ORDER BY count(lead_id)`,
+      q6: `SELECT count(lead_id) AS total_leads, platform
+FROM lead
+INNER JOIN campaign ON lead.campaign_id = campaign.campaign_id
+GROUP BY platform
+HAVING count(lead_id) > 3
+ORDER BY count(platform) DESC`,
+      q7: `SELECT *
+FROM lead
+WHERE UPPER(followup_status) = 'IN PROGRESS'
+  AND rep_id IN (
+    SELECT rep_id FROM lead
+    GROUP BY rep_id
+    HAVING COUNT(lead_id) > 5
+  )`,
+    };
+
+    function renderTable(columns, rows) {
+      if (!rows.length) return '<p style="color:var(--text-dim);padding:1rem 0">No results.</p>';
+      const html = ['<table class="data-table"><thead><tr>'];
+      columns.forEach(col => html.push(`<th>${col}</th>`));
+      html.push('</tr></thead><tbody>');
+      rows.forEach(row => {
+        html.push('<tr>');
+        columns.forEach(col => {
+          let val = row[col];
+          let cell = val === null ? '<span style="color:var(--text-dim)">—</span>' : String(val);
+          const badge = STATUS_BADGES[val];
+          if (badge) cell = `<span class="badge ${badge}">${val}</span>`;
+          if (col === 'cost' && val !== null) cell = '$' + Number(val).toLocaleString();
+          html.push(`<td>${cell}</td>`);
+        });
+        html.push('</tr>');
+      });
+      html.push('</tbody></table>');
+      return html.join('');
+    }
+
+    function renderStats(rows) {
+      if (rows.length === 0) return '';
+      return `<div class="stats"><div class="stat-card"><div class="num">${rows.length}</div><div class="label">Rows</div></div></div>`;
+    }
+
+    async function loadView(type, name) {
+      content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+      const info = type === 'table' ? TABLE_INFO[name] : QUERY_INFO[name];
+      viewTitle.textContent = info.title;
+      viewDesc.textContent = info.desc;
+
+      try {
+        const url = type === 'table' ? `/api/table/${name}` : `/api/query/${name}`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+
+        let html = '';
+        if (type === 'query') {
+          html += `<div class="section-label">SQL Query</div>`;
+          html += `<div class="query-sql">${QUERY_SQL[name] || ''}</div>`;
+          html += `<div class="section-label">Results (${data.rows.length} rows)</div>`;
+        } else {
+          html += renderStats(data.rows);
+        }
+        html += renderTable(data.columns, data.rows);
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        loadView(tab.dataset.type, tab.dataset.name);
+      });
+    });
+
+    loadView('table', 'campaign');
+  </script>
+</body>
+</html>

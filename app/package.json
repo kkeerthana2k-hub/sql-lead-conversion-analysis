@@ -1,0 +1,13 @@
+{
+  "name": "crew-db-viewer",
+  "version": "1.0.0",
+  "description": "Web viewer for the Crew fitness lead-to-membership database",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "pg": "^8.13.0"
+  }
+}
